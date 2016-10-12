@@ -3,29 +3,40 @@
 #include <SampleRobot.h>
 #include <Spark.h>
 #include <Timer.h>
+#include <cmath>
+
+	using namespace std;
 
 class Robot: public SampleRobot {
 
-	Spark *driveSparkL; // controls left side
-	Spark *driveSparkR; // right side
+private:
+	Spark driveSparkL1; // controls left side
+	Spark driveSparkL2;
 
-	Joystick *joyLeft;
-	Joystick *joyRight;
+	Spark driveSparkR1; // right side
+	Spark driveSparkR2;
 
+	Joystick joyLeft;
+	Joystick joyRight;
 
-public:
 	const double DEADZONE = .08;
 
-	Robot() {
+public:
+	Robot():
+		driveSparkL1(0),
+		driveSparkL2(1),
+		driveSparkR1(2),
+		driveSparkR2(3),
+
+		joyLeft(0),
+		joyRight(3)
+
+	{
 
 	}
 
 	void RobotInit() {
-		driveSparkL = new Spark(0);
-		driveSparkR = new Spark(3);
 
-		joyLeft = new Joystick(0);
-		joyRight = new Joystick(3);
 	}
 
 	void Autonomous() {
@@ -33,35 +44,43 @@ public:
 	}
 
 	void tankDrive(){
-		if(joyRight->GetRawAxis(1) >= DEADZONE || joyRight->GetRawAxis(1) <= -DEADZONE) {
-			driveSparkL->Set(joyRight->GetRawAxis(1));
+		double leftSpeed = 0;
+		double rightSpeed = 0;
+
+		if(abs(joyLeft.GetRawAxis(1)) >= DEADZONE){
+			leftSpeed = joyLeft.GetRawAxis(1);
 		}
 
-		if(joyLeft->GetRawAxis(1) >= DEADZONE || joyLeft->GetRawAxis(1) <= -DEADZONE) {
-			driveSparkR->Set(-joyLeft->GetRawAxis(1));
+		if(abs(joyRight.GetRawAxis(1)) >= DEADZONE){
+			rightSpeed = -joyRight.GetRawAxis(1);
 		}
+
+		driveSparkL1.Set(leftSpeed);
+		driveSparkL2.Set(leftSpeed);
+
+		driveSparkR1.Set(rightSpeed);
+		driveSparkR2.Set(rightSpeed);
 	}
 
-	void arcadeDrive(){
-		if(joyRight->GetRawAxis(1) >= DEADZONE || joyRight->GetRawAxis(1) <= -DEADZONE || //1=y
-				joyRight->GetRawAxis(0) >= DEADZONE || joyRight->GetRawAxis(0) <= -DEADZONE){ //0=x
+	void arcadeDrive(Joystick* arcadeJoy){
+		double leftSpeed = 0;
+		double rightSpeed = 0;
 
-			driveSparkL->Set(joyRight->GetRawAxis(1) - joyRight->GetRawAxis(0));
-			driveSparkR->Set(-joyRight->GetRawAxis(1) - joyRight->GetRawAxis(0));
+		if(abs(arcadeJoy->GetRawAxis(1)) >= DEADZONE || abs(arcadeJoy->GetRawAxis(0)) >= DEADZONE){
+			leftSpeed = arcadeJoy->GetRawAxis(1) - arcadeJoy->GetRawAxis(0);
+			rightSpeed = -arcadeJoy->GetRawAxis(1) - arcadeJoy->GetRawAxis(0);
 		}
 
-		else{
-			driveSparkL->Set(0);
-			driveSparkR->Set(0);
-		}
+		driveSparkL1.Set(leftSpeed);
+		driveSparkL2.Set(leftSpeed);
 
+		driveSparkR1.Set(rightSpeed);
+		driveSparkR2.Set(rightSpeed);
 	}
 
 	void OperatorControl() {
 		while (IsOperatorControl() && IsEnabled()) {
-
-			driveSparkL->Set(.3);
-			driveSparkR->Set(.3);
+			arcadeDrive(&joyRight);
 
 			Wait(0.005);
 		}

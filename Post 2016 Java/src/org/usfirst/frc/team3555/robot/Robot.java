@@ -83,8 +83,8 @@ public class Robot extends SampleRobot {
     
     public void operatorControl() {
         while (isOperatorControl() && isEnabled()) {
-        	arcadeDrive(joyRight);
-//        	tankDrive();
+//        	arcadeDrive(joyRight);
+        	tankDrive();
         	
 //        	driveSparkL1.set(-.3);
 //        	driveSparkR2.set(.3);

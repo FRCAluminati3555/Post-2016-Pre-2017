@@ -4,6 +4,11 @@ import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.SampleRobot;
 import edu.wpi.first.wpilibj.Spark;
 
+/*
+ * creates the robot class and extends the SampleRobot class
+ * the Sample robot class gives the operater control, test method, etc..
+ */
+
 public class Robot extends SampleRobot {
 	
 	/*
@@ -32,20 +37,39 @@ public class Robot extends SampleRobot {
 	 */
 	private final static double DEADZONE = .08;
 	
+	
 	/*
-	 * Constructor not used because fields established in the start of the class
+	 * For proper encapsulation, the slave spark follows the other spark, but to do this the slave must override the spark set method
+	 * this method requires the parameter in order for it to be overwritten
+	 * in the slave set method, it sets the speed to the master spark, so the speed of the method parameter that is passed in
+	 * is irrelevent, but at the same time significantly required
+	 */
+	private int dummySpeed = 0;
+	
+	/*
+	 * Class constructor, this is called when the program starts.
 	 */
     public Robot() {
+    	
+    	/*
+    	 * The Sparks take in a port number from the PWM pins on the RoboRIO
+    	 * The Joysticks each take in port numbers, this number can be found in the driver station when joystick is plugged in
+    	 */
     	driveSparkL1 = new Spark(0);
-    	driveSparkL2 = new Spark(1);
+    	driveSparkL2 = new SlaveSpark(1, driveSparkL1);
     	
     	driveSparkR1 = new Spark(2);
-    	driveSparkR2 = new Spark(3);
+    	driveSparkR2 = new SlaveSpark(3, driveSparkR1);
     	
     	joyLeft = new Joystick(0);
     	joyRight = new Joystick(3);
     }
     
+    /*
+     * If this method is called, then the rio will process the joystick values, if it is outside the deadzone
+     * then it will tell the motors to get at the speed the joystick say.
+     * Tank drive is controlled with 2 different joysticks and each joystick controls a side 
+     */ 
     public void tankDrive(){
     	double leftSpeed = 0;
     	double rightSpeed = 0;
@@ -59,13 +83,18 @@ public class Robot extends SampleRobot {
     	}
     	
     	driveSparkL1.set(leftSpeed);
-    	driveSparkL2.set(leftSpeed);
+    	driveSparkL2.set(dummySpeed);
     	
     	driveSparkR1.set(rightSpeed);
-		driveSparkR2.set(rightSpeed);
+		driveSparkR2.set(dummySpeed);
     }
     
-    public void arcadeDrive(Joystick arcadeJoy){
+    
+    /*
+     * arcade drive is controlled by only on Joysitck
+     * in this method one joystick is passed in, any joystick can be passed in, as long it was made earlier in the code as a field
+     */
+	public void arcadeDrive(Joystick arcadeJoy){
     	double leftSpeed = 0;
     	double rightSpeed = 0;
     	
@@ -75,20 +104,26 @@ public class Robot extends SampleRobot {
     	}
     	
     	driveSparkL1.set(leftSpeed);
-		driveSparkL2.set(leftSpeed);
+		driveSparkL2.set(dummySpeed);
 		
 		driveSparkR1.set(rightSpeed);
-		driveSparkR2.set(rightSpeed);
+		driveSparkR2.set(dummySpeed);
+		
+//		SmartDashboard.putDouble("Left", driveSparkL1.get());
+//		SmartDashboard.putDouble("Left slave", driveSparkL2.get());
+//		
+//		SmartDashboard.putDouble("Right", driveSparkR1.get());
+//		SmartDashboard.putDouble("Right slave", driveSparkR2.get());
     }
     
+    /*
+     * This while loop runs when the operator control is on and the robot is enabled
+     * the robot is updated in the loop by taking in inputs and such...
+     */
     public void operatorControl() {
         while (isOperatorControl() && isEnabled()) {
-//        	arcadeDrive(joyRight);
-        	tankDrive();
-        	
-//        	driveSparkL1.set(-.3);
-//        	driveSparkR2.set(.3);
+        	arcadeDrive(joyRight);
+//        	tankDrive();
         }
     }
-
 }

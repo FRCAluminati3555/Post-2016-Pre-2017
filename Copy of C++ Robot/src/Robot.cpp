@@ -5,8 +5,6 @@
 #include <Timer.h>
 #include <cmath>
 
-	using namespace std;
-
 class Robot: public SampleRobot {
 
 private:
@@ -82,6 +80,7 @@ public:
 	void OperatorControl() {
 		while (IsOperatorControl() && IsEnabled()) {
 			arcadeDrive(&joyRight);
+//			tankDrive();
 
 			Wait(0.005);
 		}

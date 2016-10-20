@@ -1,8 +1,10 @@
 package org.usfirst.frc.team3555.robot;
 
+import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.SampleRobot;
 import edu.wpi.first.wpilibj.Spark;
+import edu.wpi.first.wpilibj.Timer;
 
 /*
  * creates the robot class and extends the SampleRobot class
@@ -10,6 +12,12 @@ import edu.wpi.first.wpilibj.Spark;
  */
 
 public class Robot extends SampleRobot {
+	
+	/*
+	 * Creates a new Camera for the smartdashboard
+	 * Smartdashboard it the java application that the driver station uses to put whatever the programmer tells it to put on it
+	 */
+	CameraServer camera = CameraServer.getInstance();
 	
 	/*
 	 * Each side has 2 motors that turns 1 shaft.
@@ -63,6 +71,9 @@ public class Robot extends SampleRobot {
     	
     	joyLeft = new Joystick(0);
     	joyRight = new Joystick(3);
+    	
+    	camera.setQuality(50);
+    	camera.startAutomaticCapture("cam0");
     }
     
     /*
@@ -87,6 +98,8 @@ public class Robot extends SampleRobot {
     	
     	driveSparkR1.set(rightSpeed);
 		driveSparkR2.set(dummySpeed);
+		
+		Timer.delay(0.005);
     }
     
     

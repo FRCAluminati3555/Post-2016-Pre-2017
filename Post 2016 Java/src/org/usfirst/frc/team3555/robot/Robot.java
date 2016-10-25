@@ -8,16 +8,16 @@ import edu.wpi.first.wpilibj.Timer;
 
 /*
  * creates the robot class and extends the SampleRobot class
- * the Sample robot class gives the operater control, test method, etc..
+ * the Sample robot class gives the operator control, test method, etc..
  */
 
 public class Robot extends SampleRobot {
 	
 	/*
-	 * Creates a new Camera for the smartdashboard
+	 * Creates a new Camera for the Smartdashboard
 	 * Smartdashboard it the java application that the driver station uses to put whatever the programmer tells it to put on it
 	 */
-	CameraServer camera = CameraServer.getInstance();
+	private CameraServer camera = CameraServer.getInstance();
 	
 	/*
 	 * Each side has 2 motors that turns 1 shaft.
@@ -25,10 +25,10 @@ public class Robot extends SampleRobot {
 	 */
 	
 	private Spark driveSparkL1; //left side 
-	private Spark driveSparkL2; //left side
+	private SlaveSpark driveSparkL2; //left side slave
 	
 	private Spark driveSparkR1; //right side
-	private Spark driveSparkR2; //right side
+	private SlaveSpark driveSparkR2; //right side slave 
 	
 	
 	/*
@@ -45,15 +45,6 @@ public class Robot extends SampleRobot {
 	 */
 	private final static double DEADZONE = .08;
 	
-	
-	/*
-	 * For proper encapsulation, the slave spark follows the other spark, but to do this the slave must override the spark set method
-	 * this method requires the parameter in order for it to be overwritten
-	 * in the slave set method, it sets the speed to the master spark, so the speed of the method parameter that is passed in
-	 * is irrelevent, but at the same time significantly required
-	 */
-	private int dummySpeed = 0;
-	
 	/*
 	 * Class constructor, this is called when the program starts.
 	 */
@@ -61,7 +52,7 @@ public class Robot extends SampleRobot {
     	
     	/*
     	 * The Sparks take in a port number from the PWM pins on the RoboRIO
-    	 * The Joysticks each take in port numbers, this number can be found in the driver station when joystick is plugged in
+    	 * The joysticks each take in port numbers, this number can be found in the driver station when joystick is plugged in
     	 */
     	driveSparkL1 = new Spark(0);
     	driveSparkL2 = new SlaveSpark(1, driveSparkL1);
@@ -77,7 +68,7 @@ public class Robot extends SampleRobot {
     }
     
     /*
-     * If this method is called, then the rio will process the joystick values, if it is outside the deadzone
+     * If this method is called, then the RIO will process the joystick values, if it is outside the deadzone
      * then it will tell the motors to get at the speed the joystick say.
      * Tank drive is controlled with 2 different joysticks and each joystick controls a side 
      */ 
@@ -94,17 +85,17 @@ public class Robot extends SampleRobot {
     	}
     	
     	driveSparkL1.set(leftSpeed);
-    	driveSparkL2.set(dummySpeed);
+    	driveSparkL2.update();
     	
     	driveSparkR1.set(rightSpeed);
-		driveSparkR2.set(dummySpeed);
+		driveSparkR2.update();
 		
 		Timer.delay(0.005);
     }
     
     
     /*
-     * arcade drive is controlled by only on Joysitck
+     * arcade drive is controlled by only one joysitck
      * in this method one joystick is passed in, any joystick can be passed in, as long it was made earlier in the code as a field
      */
 	public void arcadeDrive(Joystick arcadeJoy){
@@ -117,10 +108,10 @@ public class Robot extends SampleRobot {
     	}
     	
     	driveSparkL1.set(leftSpeed);
-		driveSparkL2.set(dummySpeed);
+		driveSparkL2.update();
 		
 		driveSparkR1.set(rightSpeed);
-		driveSparkR2.set(dummySpeed);
+		driveSparkR2.update();
 		
 //		SmartDashboard.putDouble("Left", driveSparkL1.get());
 //		SmartDashboard.putDouble("Left slave", driveSparkL2.get());

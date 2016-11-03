@@ -4,6 +4,7 @@
 #include <Spark.h>
 #include <Timer.h>
 #include <cmath>
+#include <CameraServer.h>
 
 class Robot: public SampleRobot {
 
@@ -16,6 +17,8 @@ private:
 
 	Joystick joyLeft;
 	Joystick joyRight;
+
+	CameraServer* camera = CameraServer::GetInstance();
 
 	const double DEADZONE = .08;
 

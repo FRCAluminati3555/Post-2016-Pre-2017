@@ -1,12 +1,12 @@
 package org.usfirst.frc.team3555.robot;
 
+import edu.wpi.first.wpilibj.AnalogPotentiometer;
 import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Relay;
 import edu.wpi.first.wpilibj.SampleRobot;
 import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.Talon;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Victor;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -40,13 +40,13 @@ public class Robot extends SampleRobot {
 	 * 
 	 * Currently not being used because of time constraints
 	 */
-//	private AnalogPotentiometer verticalPoten;
+	private AnalogPotentiometer verticalPoten;
 	
 	/*
 	 * These constraints keep the robot from hiting either end
 	 */
-//	private double verticalDownMax;
-//	private double verticalUpMax;
+	private double verticalDownMax;
+	private double verticalUpMax;
 	
 	
 	/*
@@ -113,7 +113,7 @@ public class Robot extends SampleRobot {
     	joyLeft = new Joystick(1);
     	joyRight = new Joystick(2);
     	
-//    	verticalPoten = new AnalogPotentiometer(0);
+    	verticalPoten = new AnalogPotentiometer(0);
     	
     	camera.setQuality(50);
     	camera.startAutomaticCapture("cam0");
@@ -138,8 +138,6 @@ public class Robot extends SampleRobot {
     	
     	leftSideDrive.set(leftSpeed);
     	rightSideDrive.set(rightSpeed);
-    	
-		Timer.delay(0.005);
     }
     
     /*
@@ -174,8 +172,6 @@ public class Robot extends SampleRobot {
     	
     	leftSideDrive.set(leftSpeed);
     	rightSideDrive.set(rightSpeed);
-    	
-		Timer.delay(0.005);
     }
     
 	/*
@@ -230,7 +226,7 @@ public class Robot extends SampleRobot {
     		shoot2.set(-joyOP.getRawAxis(1));
     		loader.set(Relay.Value.kForward);
     	}
-    	
+
     	else{
     		shoot1.set(0);
     		shoot2.set(0);
@@ -243,13 +239,13 @@ public class Robot extends SampleRobot {
     	else
     		vertAd.set(0);
     	
-//    	if(verticalPoten.get() <= verticalDownMax){
-//		
-//		}
-//		
-//		if(verticalPoten.get() >= verticalUpMax){
-//			
-//		}
+    	if(verticalPoten.get() <= verticalDownMax){
+    		SmartDashboard.putString("Vertical", "too low");
+		}
+		
+		if(verticalPoten.get() >= verticalUpMax){
+			SmartDashboard.putString("Vertical", "too high"); // <- you know it
+		}
 	}
 	
 	/*
@@ -257,9 +253,8 @@ public class Robot extends SampleRobot {
 	 */
 	@SuppressWarnings("deprecation")
 	public void printData(){
-//    	SmartDashboard.putDouble("Shooter 0,1: ", shooterMotors.get());
-//    	SmartDashboard.putDouble("Vertical Potentiometer: ", verticalPoten.get());
-//    	SmartDashboard.putDouble("Vertical 3: ", vertAd.get());
+    	SmartDashboard.putDouble("Vertical Potentiometer: ", verticalPoten.get());
+    	SmartDashboard.putDouble("Vertical 3: ", vertAd.get());
 		SmartDashboard.putDouble("Left Side: ", leftSideDrive.get());
     	SmartDashboard.putDouble("Right Side: ", rightSideDrive.get());
 	}

@@ -12,7 +12,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
 import java.awt.Font;
-import javax.swing.border.BevelBorder;
 import javax.swing.border.MatteBorder;
 
 public class ShooterTheory extends JPanel implements KeyListener{
@@ -116,7 +115,7 @@ public class ShooterTheory extends JPanel implements KeyListener{
 				y+=changeBy;
 			}
 		}
-		System.out.println("Here && X: " + x);
+//		System.out.println("Here && X: " + x);
 	}
 
 	public static void main(String[] args) {

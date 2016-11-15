@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Relay;
 import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.Talon;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Victor;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -75,7 +76,7 @@ public class Engine {
 	 * The loadzone is the zone were the loader won't be activated, 
 	 * this is used to make it so the loader can be activated on each end of the slider
 	 */
-	private final static double DEADZONE = .08, LOADZONE = .8;
+	private final static double DEADZONE = .08, LOADZONE = .8;// ,VERT_HIGH = .6, VERT_MEDIUM = .4, VERT_LOW = .2;
 	
 	public Engine(){
 		/*
@@ -122,16 +123,24 @@ public class Engine {
     	rightSideDrive.set(rightSpeed);
     }
 	
-	public void driveFoward(int seconds){
-    	long startTime = System.currentTimeMillis();
-    	
-    	while(System.currentTimeMillis() < startTime + seconds * 1000){
-    		leftSideDrive.set(-.75);
-    		rightSideDrive.set(.75);
-    	}
-    	
-    	leftSideDrive.set(0);
-    	rightSideDrive.set(0);
+	public void driveFoward(int seconds, double speedLeft, double speedRight){
+//    	long startTime = System.currentTimeMillis();
+//    	
+//    	while(System.currentTimeMillis() < startTime + seconds * 1000){
+//    		leftSideDrive.set(-.75);
+//    		rightSideDrive.set(.75);
+//    	}
+//    	
+//    	leftSideDrive.set(0);
+//    	rightSideDrive.set(0);
+		
+		leftSideDrive.set(speedLeft);
+		rightSideDrive.set(speedRight);
+		
+		Timer.delay(seconds);
+		
+		leftSideDrive.set(0);
+		rightSideDrive.set(0);
 	}
 	
 	 /*
@@ -156,6 +165,10 @@ public class Engine {
 	 * if so, adjust the drive method accordingly
 	 */
 	public void checkButtons(){
+		if(joyOP.getRawButton(12)){
+			setShooterAngle(.25);
+		}
+		
 		if(joyRight.getRawButton(6) || joyLeft.getRawButton(6)){
     		arcadeDrive = false;
     	}
@@ -169,8 +182,6 @@ public class Engine {
 	 * This will update the speed of the drive motors
 	 */
 	public void updateDrive(){
-		checkButtons();
-		
 		if(arcadeDrive){
     		SmartDashboard.putString("You are currently using: ", "Arcade Drive");
     		arcadeDrive(joyRight);
@@ -180,6 +191,42 @@ public class Engine {
     		SmartDashboard.putString("You are currently using: ", "Tank Drive");
     		tankDrive();
     	}
+	}
+	//negative motor spped makes it move up, positive moves it down 
+	public void setShooterAngle(double angle){
+		double difference = verticalPoten.get()  - angle;
+		
+		while(Math.abs(difference) > .06){
+			difference = verticalPoten.get()  - angle;
+			//needs to move down
+			if(difference < 0){
+				while(Math.abs(difference) > .6){
+					vertAd.set(.5);
+				}
+				
+				while(Math.abs(difference) > .4){
+					vertAd.set(.25);
+				}
+				while(Math.abs(difference) > .1){
+					vertAd.set(.1);
+				}
+			}
+			
+			//needs to move up
+			if(difference > 0){
+				while(Math.abs(difference) > .6){
+					vertAd.set(-.5);
+				}
+				
+				while(Math.abs(difference) > .3){
+					vertAd.set(-.25);
+				}
+				while(Math.abs(difference) > .1){
+					vertAd.set(-.1);
+				}
+			}
+		}
+		
 	}
 	
 	/*
@@ -210,7 +257,13 @@ public class Engine {
     	}
     	
     	if(joyOP.getRawButton(4) && Math.abs(joyOP.getRawAxis(2)) >= DEADZONE){
-    		vertAd.set(joyOP.getRawAxis(2));
+    		if(joyOP.getRawAxis(2) < -DEADZONE && verticalPoten.get() > verticalDownMax){
+    			vertAd.set(joyOP.getRawAxis(2));
+    		}
+    		
+    		if(joyOP.getRawAxis(2) > DEADZONE && verticalPoten.get() < verticalUpMax){
+    			vertAd.set(joyOP.getRawAxis(2));
+    		}
     	}
     	
     	else
@@ -221,7 +274,7 @@ public class Engine {
 		}
 		
 		if(verticalPoten.get() >= verticalUpMax){
-			SmartDashboard.putString("Vertical", "too high"); // <- you know it
+			SmartDashboard.putString("Vertical", "too high");
 		}
 	}
 	

@@ -22,7 +22,7 @@ public class Robot extends SampleRobot {
      * This will just drive the robot forward at 75% Speed for the set amount of seconds, the local variable seconds
      */
     public void autonomous() {
-    	engine.driveFoward(1, -.5, .5);
+    	engine.outoDrive(3, .5, .5);
 	}
 	
     /*
@@ -34,10 +34,11 @@ public class Robot extends SampleRobot {
         while(isOperatorControl() && isEnabled()) {
         	engine.checkButtons();
         	engine.updateDrive();
-//        	engine.updateShooter();
+        	engine.updateShooter();
         	engine.printData();
         	
         	Timer.delay(0.005);
         }
+        engine.resetEncoders();
     }
 }

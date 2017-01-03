@@ -2,6 +2,7 @@ package org.usfirst.frc.team3555.robot;
 
 import edu.wpi.first.wpilibj.AnalogPotentiometer;
 import edu.wpi.first.wpilibj.CameraServer;
+import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Relay;
 import edu.wpi.first.wpilibj.Spark;
@@ -20,6 +21,12 @@ public class Engine {
 	 */
 	private MotorGroup leftSideDrive;
 	private MotorGroup rightSideDrive;
+	
+	/*
+	 * 1 revolution is 720 units
+	 * 1 degree is 2 units
+	 */
+	private Encoder right = new Encoder(0, 1, true, Encoder.EncodingType.k1X);
 	
 	/*
 	 * These speed controllers control the shooter motors
@@ -46,21 +53,22 @@ public class Engine {
 	private Joystick joyRight;
 	private Joystick joyOP;
 	
+	/*
+	 * Creates the camera object to get feed from the camera
+	 */
 	private CameraServer camera = CameraServer.getInstance();
 	
 	/*
 	 * the potentiometer measures angle
 	 * This potentiometer measures the angle of the vertical alignment of the shooter
-	 * 
-	 * Currently not being used because of time constraints
 	 */
 	private AnalogPotentiometer verticalPoten;
 	
 	/*
 	 * These constraints keep the robot from hitting either end
 	 */
-	private final double verticalDownMax = .2;
-	private final double verticalUpMax = .8;
+	private final double verticalDownMax = 200;
+	private final double verticalUpMax = 120;
 	
 	/*
 	 * This variable tells whether or not arcade drive is being used
@@ -78,10 +86,16 @@ public class Engine {
 	 */
 	private final static double DEADZONE = .08, LOADZONE = .8;// ,VERT_HIGH = .6, VERT_MEDIUM = .4, VERT_LOW = .2;
 	
+	private final static double CIRC = 38.5;
+	
+	private double unitsPerRev = 695, revs,revsps,revsPFT, ftps, mips;
+	
+	
 	public Engine(){
 		/*
     	 * The Sparks take in a port number from the PWM pins on the RoboRIO
     	 * The joysticks each take in port numbers, this number can be found in the driver station when joystick is plugged in
+    	 * MotorGroup takes in two speed controllers, spark is a speed controller
     	 */
     	leftSideDrive = new MotorGroup(new Spark(0), new Spark(1));
     	rightSideDrive = new MotorGroup(new Spark(2), new Spark(3));
@@ -96,7 +110,9 @@ public class Engine {
     	joyLeft = new Joystick(1);
     	joyRight = new Joystick(2);
     	
-    	verticalPoten = new AnalogPotentiometer(0);
+    	verticalPoten = new AnalogPotentiometer(0, 360);
+    	
+    	right.setDistancePerPulse(1);
     	
     	camera.setQuality(50);
     	camera.startAutomaticCapture("cam0");
@@ -122,19 +138,13 @@ public class Engine {
     	leftSideDrive.set(leftSpeed);
     	rightSideDrive.set(rightSpeed);
     }
-	
-	public void driveFoward(int seconds, double speedLeft, double speedRight){
-//    	long startTime = System.currentTimeMillis();
-//    	
-//    	while(System.currentTimeMillis() < startTime + seconds * 1000){
-//    		leftSideDrive.set(-.75);
-//    		rightSideDrive.set(.75);
-//    	}
-//    	
-//    	leftSideDrive.set(0);
-//    	rightSideDrive.set(0);
-		
-		leftSideDrive.set(speedLeft);
+
+	/*
+	 * This method will take in 3 parameters that specify the speed, and the amount of time that it will run for
+	 * This will just move foward or backward, maybe spin
+	 */
+	public void outoDrive(int seconds, double speedLeft, double speedRight){
+		leftSideDrive.set(-speedLeft);
 		rightSideDrive.set(speedRight);
 		
 		Timer.delay(seconds);
@@ -161,76 +171,8 @@ public class Engine {
     }
     
 	/*
-	 * This method checks if the buttons are being pressed
-	 * if so, adjust the drive method accordingly
-	 */
-	public void checkButtons(){
-		if(joyOP.getRawButton(12)){
-			setShooterAngle(.25);
-		}
-		
-		if(joyRight.getRawButton(6) || joyLeft.getRawButton(6)){
-    		arcadeDrive = false;
-    	}
-    	
-		else if(joyRight.getRawButton(7) || joyLeft.getRawButton(6)){
-    		arcadeDrive = true;
-    	}
-	}
-	
-	/*
-	 * This will update the speed of the drive motors
-	 */
-	public void updateDrive(){
-		if(arcadeDrive){
-    		SmartDashboard.putString("You are currently using: ", "Arcade Drive");
-    		arcadeDrive(joyRight);
-    	}
-    		
-    	else{
-    		SmartDashboard.putString("You are currently using: ", "Tank Drive");
-    		tankDrive();
-    	}
-	}
-	//negative motor spped makes it move up, positive moves it down 
-	public void setShooterAngle(double angle){
-		double difference = verticalPoten.get()  - angle;
-		
-		while(Math.abs(difference) > .06){
-			difference = verticalPoten.get()  - angle;
-			//needs to move down
-			if(difference < 0){
-				while(Math.abs(difference) > .6){
-					vertAd.set(.5);
-				}
-				
-				while(Math.abs(difference) > .4){
-					vertAd.set(.25);
-				}
-				while(Math.abs(difference) > .1){
-					vertAd.set(.1);
-				}
-			}
-			
-			//needs to move up
-			if(difference > 0){
-				while(Math.abs(difference) > .6){
-					vertAd.set(-.5);
-				}
-				
-				while(Math.abs(difference) > .3){
-					vertAd.set(-.25);
-				}
-				while(Math.abs(difference) > .1){
-					vertAd.set(-.1);
-				}
-			}
-		}
-		
-	}
-	
-	/*
-	 * This method updates the state of the shooter
+	 * This method updates the shooter system
+	 * it checks the operator joystick's slider and checks the axis
 	 */
 	public void updateShooter(){
 		if(joyOP.getRawAxis(3) <= -LOADZONE){
@@ -257,25 +199,161 @@ public class Engine {
     	}
     	
     	if(joyOP.getRawButton(4) && Math.abs(joyOP.getRawAxis(2)) >= DEADZONE){
-    		if(joyOP.getRawAxis(2) < -DEADZONE && verticalPoten.get() > verticalDownMax){
+    		if(joyOP.getRawAxis(2) < -DEADZONE && verticalPoten.get() < verticalUpMax + 15){//too high
     			vertAd.set(joyOP.getRawAxis(2));
     		}
     		
-    		if(joyOP.getRawAxis(2) > DEADZONE && verticalPoten.get() < verticalUpMax){
+    		else if(verticalPoten.get() > verticalUpMax && verticalPoten.get() < verticalDownMax){//in mid
     			vertAd.set(joyOP.getRawAxis(2));
     		}
+    		
+    		else if(joyOP.getRawAxis(2) > DEADZONE && verticalPoten.get() > verticalDownMax - 12){//too low
+    			vertAd.set(joyOP.getRawAxis(2));
+    		}  
+    		
+    		if(joyOP.getRawAxis(2) > -DEADZONE && verticalPoten.get() < verticalUpMax + 15){//too high
+    			vertAd.set(0);
+    		}
+    		
+    		else if(joyOP.getRawAxis(2) < DEADZONE && verticalPoten.get() > verticalDownMax - 12){//too low
+    			vertAd.set(0);
+    		} 
     	}
     	
     	else
     		vertAd.set(0);
+
+    	if(verticalPoten.get() < verticalUpMax && joyOP.getRawButton(4)){
+			SmartDashboard.putString("Vertical", "too High");
+		}
     	
-    	if(verticalPoten.get() <= verticalDownMax){
-    		SmartDashboard.putString("Vertical", "too low");
+    	else if(verticalPoten.get() > verticalUpMax && verticalPoten.get() < verticalDownMax){
+    		SmartDashboard.putString("Vertical", "All Good");
+    	}
+    	 
+    	else if(verticalPoten.get() > verticalDownMax && joyOP.getRawButton(4)){
+    		SmartDashboard.putString("Vertical", "too Low");
+		}
+	}
+	
+	/*
+	 * This method checks if the buttons are being pressed
+	 * if so, adjust the drive method accordingly
+	 */
+	double low = 200;
+	double med = 174;
+	double high = 148;
+	
+	public void checkButtons(){
+//		if(joyOP.getRawButton(12)){
+//			setShooterAngle(.25);
+//		}
+		
+		if(joyOP.getRawButton(8)){//low
+			while(verticalPoten.get() >= low){
+				vertAd.set(.5);
+			}
+			
+			while(verticalPoten.get() <= low){
+				vertAd.set(-.4);
+			}
+			
+			vertAd.set(0);
 		}
 		
-		if(verticalPoten.get() >= verticalUpMax){
-			SmartDashboard.putString("Vertical", "too high");
+		if(joyOP.getRawButton(10)){//med
+			while(verticalPoten.get() >= med){
+				vertAd.set(.5);
+			}
+			
+			while(verticalPoten.get() <= med){
+				vertAd.set(-.4);
+			}
+			
+			vertAd.set(0);
 		}
+		
+		if(joyOP.getRawButton(12)){//high
+			while(verticalPoten.get() >= high){
+				vertAd.set(.5);
+			}
+			
+			while(verticalPoten.get() <= high){
+				vertAd.set(-.4);
+			}
+			
+			vertAd.set(0);
+		}
+		
+		if(joyRight.getRawButton(6) || joyLeft.getRawButton(6)){
+    		arcadeDrive = false;
+    	}
+    	
+		else if(joyRight.getRawButton(7) || joyLeft.getRawButton(6)){
+    		arcadeDrive = true;
+    	}
+	}
+	
+	/*
+	 * This will update the speed of the drive motors using the corresponding method
+	 * then say which method is being used
+	 */
+	public void updateDrive(){
+		if(arcadeDrive){
+    		SmartDashboard.putString("You are currently using: ", "Arcade Drive");
+    		arcadeDrive(joyRight);
+    	}
+    		
+    	else{
+    		SmartDashboard.putString("You are currently using: ", "Tank Drive");
+    		tankDrive();
+    	}
+	}
+
+	/*
+	 * This method sets the angle of the shooter
+	 * 
+	 * currently untested, may or may not work
+	 */
+//	public void setShooterAngle(double angle){
+//		double difference = verticalPoten.get()  - angle;
+//		
+//		while(Math.abs(difference) > .06){
+//			difference = verticalPoten.get()  - angle;
+//			
+//			//needs to move down
+//			if(difference < 0){
+//				while(Math.abs(difference) > .6){
+//					vertAd.set(.5);
+//				}
+//				
+//				while(Math.abs(difference) > .4){
+//					vertAd.set(.25);
+//				}
+//				while(Math.abs(difference) > .1){
+//					vertAd.set(.1);
+//				}
+//			}
+//			
+//			//needs to move up
+//			if(difference > 0){
+//				while(Math.abs(difference) > .6){
+//					vertAd.set(-.5);
+//				}
+//				
+//				while(Math.abs(difference) > .3){
+//					vertAd.set(-.25);
+//				}
+//				while(Math.abs(difference) > .1){
+//					vertAd.set(-.1);
+//				}
+//			}
+//		}
+//		
+//	}
+	
+	public void resetEncoders(){
+		right.reset();
 	}
 	
 	/*
@@ -283,9 +361,21 @@ public class Engine {
 	 */
 	@SuppressWarnings("deprecation")
 	public void printData(){
-    	SmartDashboard.putDouble("Vertical Potentiometer: ", verticalPoten.get());
-    	SmartDashboard.putDouble("Vertical 3: ", vertAd.get());
-		SmartDashboard.putDouble("Left Side: ", leftSideDrive.get());
-    	SmartDashboard.putDouble("Right Side: ", rightSideDrive.get());
+		revs = right.get() / unitsPerRev;
+		revsps = right.getRate() / unitsPerRev;
+		ftps = (right.getRate()/unitsPerRev) * CIRC;
+		mips = (((right.getRate()/unitsPerRev) * CIRC) * 5280) / 3600;
+		
+    	SmartDashboard.putDouble("Vertical Loader Potentiometer: ", verticalPoten.get());
+    	SmartDashboard.putDouble("Vertical Loader Speed Controller: ", vertAd.get());
+		SmartDashboard.putDouble("Left Side Motor: ", leftSideDrive.get());
+    	SmartDashboard.putDouble("Right Side Motor: ", rightSideDrive.get());
+    	
+    	SmartDashboard.putNumber("Encoder Right: ", right.get());
+    	SmartDashboard.putNumber("Encoder Right revs: ", revs);
+    	SmartDashboard.putNumber("Encoder Right revs/sec: ", revsps);
+    	
+		SmartDashboard.putNumber("Encoder Right ft/s ", ftps);
+		SmartDashboard.putNumber("Encoder Right m/s: ", mips);
 	}
 }

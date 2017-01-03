@@ -30,6 +30,7 @@ public:
 
 	void OperatorControl() {
 		while (IsOperatorControl() && IsEnabled()) {
+			engine->CheckButtons();
 			engine->UpdateDrive();
 			engine->UpdateShooter();
 			engine->PrintData();

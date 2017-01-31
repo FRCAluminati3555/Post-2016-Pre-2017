@@ -35,6 +35,9 @@ public class Engine {
 	
 	/*
 	 * These speed controllers control the shooter motors
+	 *
+	 * Article on speed controllers: 
+	 * https://wpilib.screenstepslive.com/s/4485/m/13809/l/599702-driving-motors-with-speed-controller-objects-victors-talons-and-jaguars
 	 */
 	private Victor shoot1;  
 	private Talon shoot2; 
@@ -58,6 +61,9 @@ public class Engine {
 	 * The side joysticks control each side of the robot (Depending on the drive method)
 	 * Joy left and right are the two joysticks that control the drian train 
 	 * JoyOP is the fancier joystick on the side, this is the Joystick for the operator, hence OP at the end of the name
+	 *
+	 * Article on Joysticks: 
+	 * https://wpilib.screenstepslive.com/s/4485/m/13809/l/599723-joysticks
 	 */
 	private Joystick joyLeft;
 	private Joystick joyRight;
@@ -72,6 +78,9 @@ public class Engine {
 	/*
 	 * the potentiometer measures angle
 	 * This potentiometer measures the angle of the vertical alignment of the shooter
+	 *
+	 * Article on potentiometer:
+	 * https://wpilib.screenstepslive.com/s/4485/m/13809/l/599719-potentiometers-measuring-joint-angle-or-linear-motion
 	 */
 	private AnalogPotentiometer verticalPoten;
 	
@@ -114,7 +123,7 @@ public class Engine {
 		/*
     	 * The Sparks take in a port number from the PWM pins on the RoboRIO
     	 * The joysticks each take in port numbers, this number can be found in the driver station when joystick is plugged in
-    	 * MotorGroup takes in two speed controllers, spark is a speed controller
+    	 * MotorGroup takes in two speed controllers, spark is a speed controller, this is a class made by the team, not WPI
     	 */
     	leftSideDrive = new MotorGroup(new Spark(0), new Spark(1));
     	rightSideDrive = new MotorGroup(new Spark(2), new Spark(3));
@@ -132,24 +141,18 @@ public class Engine {
 	/*
 	* This makes a new potentiometer object, taking in a channel in the Analog ports on the RIO
 	* this also takes in a number for scale, which is basically the amount of degrees the potentiometer can turn
-	* 
-	* Article on potentiometer:
-	* https://wpilib.screenstepslive.com/s/4485/m/13809/l/599719-potentiometers-measuring-joint-angle-or-linear-motion
 	*/
-		
     	verticalPoten = new AnalogPotentiometer(0, 360);
     	
 	/*
 	* right is the encoder on the right side of the robot, this method will make each puls sent from the encoder eqaul to 1
 	* this is done to keep the numbers whole, and at a low number
 	*/
-		
     	right.setDistancePerPulse(1);
     	
 	/*
 	* These two methods set the capture of the camera to the cam0, which is usually the name of the camera on the robot
 	*/
-		
     	camera.setQuality(50);
     	camera.startAutomaticCapture("cam0");
 	}

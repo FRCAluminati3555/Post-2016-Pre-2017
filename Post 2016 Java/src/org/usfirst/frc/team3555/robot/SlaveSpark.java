@@ -1,3 +1,9 @@
+/*
+* This class is no longer used because it override the methods of the slave class, which isn't the greatest practice
+* This also was too specific, meaning it only worked for sparks, and nothing else because it overides a method in the spark class
+* Motor Group is now what is used for dual motor control
+*/
+
 package org.usfirst.frc.team3555.robot;
 
 import edu.wpi.first.wpilibj.Spark;

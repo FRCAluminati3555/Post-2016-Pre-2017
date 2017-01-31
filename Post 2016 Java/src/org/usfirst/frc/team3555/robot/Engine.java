@@ -23,6 +23,11 @@ public class Engine {
 	private MotorGroup rightSideDrive;
 	
 	/*
+	 * This Encoder constructor takes in the 2 D I/O ports, and the encoding type that you'd like to use
+	 * Encoder WPI article:
+	 * https://wpilib.screenstepslive.com/s/4485/m/13809/l/599717-encoders-measuring-rotation-of-a-wheel-or-other-shaft
+	 *
+	 * For this robot:
 	 * 1 revolution is 720 units
 	 * 1 degree is 2 units
 	 */
@@ -36,7 +41,10 @@ public class Engine {
 
 	/*
 	 * The relay is a motor that can go either forward or backward
-	 * Since the loader only needs to go these two directions, the relay is used
+	 * Since the loader only needs to go two directions, the relay is used
+	 * 
+	 * WPI article:
+	 * https://wpilib.screenstepslive.com/s/4485/m/13809/l/599706-on-off-control-of-motors-and-other-mechanisms-relays
 	 */
 	private Relay loader;
 	
@@ -48,6 +56,8 @@ public class Engine {
 	/*
 	 * Creates 3 new joy stick objects
 	 * The side joysticks control each side of the robot (Depending on the drive method)
+	 * Joy left and right are the two joysticks that control the drian train 
+	 * JoyOP is the fancier joystick on the side, this is the Joystick for the operator, hence OP at the end of the name
 	 */
 	private Joystick joyLeft;
 	private Joystick joyRight;
@@ -55,6 +65,7 @@ public class Engine {
 	
 	/*
 	 * Creates the camera object to get feed from the camera
+	 * sends feed to the dashbaord
 	 */
 	private CameraServer camera = CameraServer.getInstance();
 	
@@ -65,13 +76,14 @@ public class Engine {
 	private AnalogPotentiometer verticalPoten;
 	
 	/*
-	 * These constraints keep the robot from hitting either end
+	 * These constraints keep the robot shooter from hitting either end of the front of the robot
 	 */
 	private final double verticalDownMax = 200;
 	private final double verticalUpMax = 120;
 	
 	/*
 	 * This variable tells whether or not arcade drive is being used
+	 * if it false then tank drive is used
 	 */
 	private boolean arcadeDrive;
 	
@@ -86,6 +98,13 @@ public class Engine {
 	 */
 	private final static double DEADZONE = .08, LOADZONE = .8;// ,VERT_HIGH = .6, VERT_MEDIUM = .4, VERT_LOW = .2;
 	
+	/*
+	 * CIRC is the circumference of the wheels on the robot
+	 * Units Per Rev is the amount of units in each revolution of a wheel
+	 * the other variables represent some calculations done later in the prigram
+	 * revs being the amount of revolutions, revsps is the amount of revs per second, ftps is the robot speed int ft/s
+	 * mips is the robot speed in miles per second
+	 */
 	private final static double CIRC = 38.5;
 	
 	private double unitsPerRev = 695, revs,revsps,revsPFT, ftps, mips;
@@ -110,10 +129,27 @@ public class Engine {
     	joyLeft = new Joystick(1);
     	joyRight = new Joystick(2);
     	
+	/*
+	* This makes a new potentiometer object, taking in a channel in the Analog ports on the RIO
+	* this also takes in a number for scale, which is basically the amount of degrees the potentiometer can turn
+	* 
+	* Article on potentiometer:
+	* https://wpilib.screenstepslive.com/s/4485/m/13809/l/599719-potentiometers-measuring-joint-angle-or-linear-motion
+	*/
+		
     	verticalPoten = new AnalogPotentiometer(0, 360);
     	
+	/*
+	* right is the encoder on the right side of the robot, this method will make each puls sent from the encoder eqaul to 1
+	* this is done to keep the numbers whole, and at a low number
+	*/
+		
     	right.setDistancePerPulse(1);
     	
+	/*
+	* These two methods set the capture of the camera to the cam0, which is usually the name of the camera on the robot
+	*/
+		
     	camera.setQuality(50);
     	camera.startAutomaticCapture("cam0");
 	}
@@ -172,7 +208,7 @@ public class Engine {
     
 	/*
 	 * This method updates the shooter system
-	 * it checks the operator joystick's slider and checks the axis
+	 * it checks the operator joystick's slider and checks the axises on the joystick
 	 */
 	public void updateShooter(){
 		if(joyOP.getRawAxis(3) <= -LOADZONE){
@@ -197,6 +233,11 @@ public class Engine {
     		shoot1.set(0);
     		shoot2.set(0);
     	}
+		
+	/*
+	* This method will check if the shooter is moving, if so, it will check to see if it is too low or too high
+	* if it in the extremes, then it will stop the shooter, however if you are trying to get out of the extremes then it will let you
+	*/
     	
     	if(joyOP.getRawButton(4) && Math.abs(joyOP.getRawAxis(2)) >= DEADZONE){
     		if(joyOP.getRawAxis(2) < -DEADZONE && verticalPoten.get() < verticalUpMax + 15){//too high
@@ -223,6 +264,9 @@ public class Engine {
     	else
     		vertAd.set(0);
 
+		/*
+		* This will print out wether or not the potentiometer is too high or low, or is in the middle(all good)
+		*/
     	if(verticalPoten.get() < verticalUpMax && joyOP.getRawButton(4)){
 			SmartDashboard.putString("Vertical", "too High");
 		}
@@ -238,7 +282,7 @@ public class Engine {
 	
 	/*
 	 * This method checks if the buttons are being pressed
-	 * if so, adjust the drive method accordingly
+	 * if so, do what the button corresponds to
 	 */
 	double low = 200;
 	double med = 174;
@@ -248,6 +292,10 @@ public class Engine {
 //		if(joyOP.getRawButton(12)){
 //			setShooterAngle(.25);
 //		}
+		/*
+		* This block of if statements will move the shooter to three different positions using a potentiometer
+		* 
+		*/
 		
 		if(joyOP.getRawButton(8)){//low
 			while(verticalPoten.get() >= low){
@@ -285,6 +333,9 @@ public class Engine {
 			vertAd.set(0);
 		}
 		
+		/*
+		* This block will check the buttons, and adjust the boolean value of the arcade drive to switch drive modes
+		*/
 		if(joyRight.getRawButton(6) || joyLeft.getRawButton(6)){
     		arcadeDrive = false;
     	}
@@ -309,49 +360,12 @@ public class Engine {
     		tankDrive();
     	}
 	}
-
-	/*
-	 * This method sets the angle of the shooter
-	 * 
-	 * currently untested, may or may not work
-	 */
-//	public void setShooterAngle(double angle){
-//		double difference = verticalPoten.get()  - angle;
-//		
-//		while(Math.abs(difference) > .06){
-//			difference = verticalPoten.get()  - angle;
-//			
-//			//needs to move down
-//			if(difference < 0){
-//				while(Math.abs(difference) > .6){
-//					vertAd.set(.5);
-//				}
-//				
-//				while(Math.abs(difference) > .4){
-//					vertAd.set(.25);
-//				}
-//				while(Math.abs(difference) > .1){
-//					vertAd.set(.1);
-//				}
-//			}
-//			
-//			//needs to move up
-//			if(difference > 0){
-//				while(Math.abs(difference) > .6){
-//					vertAd.set(-.5);
-//				}
-//				
-//				while(Math.abs(difference) > .3){
-//					vertAd.set(-.25);
-//				}
-//				while(Math.abs(difference) > .1){
-//					vertAd.set(-.1);
-//				}
-//			}
-//		}
-//		
-//	}
 	
+	/*
+	* this method will reset all the encoders, this is done because if the robot is enabled and disabled (not turned off)
+	* then the values will carry over to the next loop, and that wouldn't be great for measuring distance
+	* however if the robot is turned off, then the values will go back to 0
+	*/
 	public void resetEncoders(){
 		right.reset();
 	}

@@ -1,3 +1,8 @@
+/*
+* this is a simple java graphics program to represent to shooter theory, and how it is planned to work
+* this does not run on the robot!
+*/
+
 package org.usfirst.frc.team3555.robot;
 
 import java.awt.BasicStroke;

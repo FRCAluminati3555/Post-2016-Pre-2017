@@ -1,3 +1,9 @@
+/*
+* FRC Robot program for team 3555 robot
+* pre 2017 robot
+* coded by Sam Secondo
+*/
+
 package org.usfirst.frc.team3555.robot;
 
 import edu.wpi.first.wpilibj.SampleRobot;
@@ -19,7 +25,7 @@ public class Robot extends SampleRobot {
     
     /*
      * This method is called by the field at the competition
-     * This will just drive the robot forward at 75% Speed for the set amount of seconds, the local variable seconds
+     * This will drive the robot for 3 seconds at half speed
      */
     public void autonomous() {
     	engine.outoDrive(3, .5, .5);
@@ -29,7 +35,6 @@ public class Robot extends SampleRobot {
      * This while loop runs when the operator control is on and the robot is enabled
      * the robot is updated in the loop by taking in inputs and such...
      */
-
 	public void operatorControl() {
         while(isOperatorControl() && isEnabled()) {
         	engine.checkButtons();
@@ -39,6 +44,9 @@ public class Robot extends SampleRobot {
         	
         	Timer.delay(0.005);
         }
+	/*
+	* resets the encoder values so that they don't carry over in the next enable, if the robot is still on
+	*/
         engine.resetEncoders();
     }
 }
